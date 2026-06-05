@@ -46,3 +46,11 @@ jobs:
             -H "Content-Type: application/json" \
             -H "X-Worker-Key: ${{ secrets.WORKER_KEY }}" \
             -d "{\"token\":\"${{ steps.olsera.outputs.token }}\"}"
+
+      - name: Upload debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: olsera-login-debug
+          path: debug-artifacts/
+          if-no-files-found: ignore

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const fs = require('fs');
 
 function requiredEnv(name) {
   const value = process.env[name];
@@ -44,6 +45,48 @@ async function readStorageToken(page) {
   });
 }
 
+async function fillFirst(page, selectors, value, label) {
+  for (const selector of selectors) {
+    const locator = page.locator(selector).first();
+
+    if (await locator.count()) {
+      try {
+        await locator.waitFor({ state: 'visible', timeout: 5000 });
+        await locator.fill(value);
+        return selector;
+      } catch (error) {
+        // Try the next selector; login pages often keep hidden duplicate inputs.
+      }
+    }
+  }
+
+  throw new Error(`Field ${label} tidak ditemukan.`);
+}
+
+async function clickFirst(page, selectors) {
+  for (const selector of selectors) {
+    const locator = page.locator(selector).first();
+
+    if (await locator.count()) {
+      try {
+        await locator.waitFor({ state: 'visible', timeout: 5000 });
+        await locator.click();
+        return selector;
+      } catch (error) {
+        // Try the next selector.
+      }
+    }
+  }
+
+  throw new Error('Tombol login tidak ditemukan.');
+}
+
+async function saveDebugArtifacts(page) {
+  await fs.promises.mkdir('debug-artifacts', { recursive: true });
+  await page.screenshot({ path: 'debug-artifacts/olsera-login.png', fullPage: true }).catch(() => null);
+  await fs.promises.writeFile('debug-artifacts/olsera-login.html', await page.content()).catch(() => null);
+}
+
 async function main() {
   const email = requiredEnv('OLSERA_EMAIL');
   const password = requiredEnv('OLSERA_PASSWORD');
@@ -54,6 +97,7 @@ async function main() {
   try {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
+    globalThis.__olseraPage = page;
 
     page.on('request', request => {
       const authorization = request.headers().authorization;
@@ -74,11 +118,39 @@ async function main() {
     });
 
     await page.goto(loginUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.fill('input[type="email"], input[name="email"]', email);
-    await page.fill('input[type="password"], input[name="password"]', password);
+
+    await fillFirst(page, [
+      'input[type="email"]',
+      'input[name="email"]',
+      'input[name="username"]',
+      'input[name="user"]',
+      'input[id="email"]',
+      'input[id="username"]',
+      'input[placeholder*="Email"]',
+      'input[placeholder*="email"]',
+      'input[placeholder*="Username"]',
+      'input[placeholder*="username"]',
+      'input[type="text"]'
+    ], email, 'email/username');
+
+    await fillFirst(page, [
+      'input[type="password"]',
+      'input[name="password"]',
+      'input[id="password"]',
+      'input[placeholder*="Password"]',
+      'input[placeholder*="password"]'
+    ], password, 'password');
+
     await Promise.all([
       page.waitForLoadState('networkidle', { timeout: 60000 }).catch(() => null),
-      page.click('button[type="submit"], button:has-text("Login"), button:has-text("Masuk")')
+      clickFirst(page, [
+        'button[type="submit"]',
+        'input[type="submit"]',
+        'button:has-text("Login")',
+        'button:has-text("Masuk")',
+        'button:has-text("Sign in")',
+        'button:has-text("Log in")'
+      ])
     ]);
 
     if (!token) {
@@ -103,7 +175,10 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch(async error => {
+  if (globalThis.__olseraPage) {
+    await saveDebugArtifacts(globalThis.__olseraPage).catch(() => null);
+  }
   process.stderr.write(`${error.message}\n`);
   process.exit(1);
 });
