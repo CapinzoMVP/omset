@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Omset Olsera</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand bg-white">
+    <div class="container page-shell">
+      <a class="navbar-brand fw-bold" href="/">Omset Olsera</a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link active" href="/">Dashboard</a>
+        <a class="nav-link" href="/settings.html">Settings</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container page-shell py-4">
+    <section class="panel p-3 mb-4">
+      <form id="reportForm" class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label for="fromDate" class="form-label">Dari Tanggal</label>
+          <input id="fromDate" name="from" type="date" class="form-control">
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="toDate" class="form-label">Sampai Tanggal</label>
+          <input id="toDate" name="to" type="date" class="form-control">
+        </div>
+        <div class="col-12 col-md-4">
+          <button class="btn btn-primary w-100" type="submit">Tarik Laporan</button>
+        </div>
+      </form>
+      <div id="statusText" class="status-text small text-muted mt-3"></div>
+    </section>
+
+    <section class="row g-3 mb-4">
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="summary-card bg-white p-3">
+          <div class="label">Grand Total Omset</div>
+          <div id="grandTotal" class="value mt-3">Rp0</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="summary-card bg-white p-3">
+          <div class="label">Porsi Billiard</div>
+          <div id="porsiBilliard" class="value mt-3">Rp0</div>
+          <div class="small text-muted mt-2">Porsi dari Grand Total</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="summary-card bg-white p-3">
+          <div class="label">Total Bar</div>
+          <div id="totalBar" class="value mt-3">Rp0</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="summary-card bg-white p-3">
+          <div class="label">Total Dapur</div>
+          <div id="totalDapur" class="value mt-3">Rp0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="panel p-3">
+          <h2 class="h6 mb-3">Top 10 Minuman</h2>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Item</th>
+                  <th class="text-end">Qty</th>
+                </tr>
+              </thead>
+              <tbody id="minumanRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="panel p-3">
+          <h2 class="h6 mb-3">Top 10 Makanan</h2>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Item</th>
+                  <th class="text-end">Qty</th>
+                </tr>
+              </thead>
+              <tbody id="makananRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

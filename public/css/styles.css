@@ -1,0 +1,60 @@
+body {
+  background: #f6f7fb;
+  color: #1f2937;
+}
+
+.navbar {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.page-shell {
+  max-width: 1180px;
+}
+
+.summary-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 136px;
+}
+
+.summary-card .label {
+  color: #6b7280;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.summary-card .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.table thead th {
+  color: #4b5563;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.status-text {
+  min-height: 1.5rem;
+}
+
+.form-control,
+.form-select,
+.btn {
+  border-radius: 6px;
+}
+
+@media (max-width: 575.98px) {
+  .summary-card .value {
+    font-size: 1.25rem;
+  }
+}

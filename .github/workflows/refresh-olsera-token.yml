@@ -1,0 +1,48 @@
+name: Refresh Olsera Token
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  refresh-token:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Get Olsera token
+        id: olsera
+        run: |
+          TOKEN="$(node worker/get-olsera-token.js)"
+          if [ -z "$TOKEN" ]; then
+            echo "Token kosong"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+        env:
+          OLSERA_EMAIL: ${{ secrets.OLSERA_EMAIL }}
+          OLSERA_PASSWORD: ${{ secrets.OLSERA_PASSWORD }}
+          OLSERA_LOGIN_URL: ${{ secrets.OLSERA_LOGIN_URL }}
+
+      - name: Send token to homelab
+        run: |
+          curl --fail-with-body -X POST "${{ secrets.OMSET_APP_URL }}/api/settings/olsera-token" \
+            -H "Content-Type: application/json" \
+            -H "X-Worker-Key: ${{ secrets.WORKER_KEY }}" \
+            -d "{\"token\":\"${{ steps.olsera.outputs.token }}\"}"
