@@ -92,7 +92,13 @@ async function fetchSalesItemsByCategory({ from, to, category, token }) {
       }
     });
 
-    return normalizeSalesRows(response.data);
+    return normalizeSalesRows(response.data).map(row => ({
+      ...row,
+      __category_name: category.category_name,
+      __olsera_group_id: category.olsera_group_id,
+      __production_area: category.production_area,
+      __item_type: category.item_type
+    }));
   } catch (error) {
     throw new Error(`Gagal mengambil data kategori ${category.category_name}: ${error.message}`);
   }

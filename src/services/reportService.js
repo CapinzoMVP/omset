@@ -76,9 +76,16 @@ function aggregateReport({ masterData, categories, billiardCashiers }) {
     const qty = toNumber(row.qty || row.quantity);
     const cashierName = normalizeText(row.sales_name || row.cashier_name || row.cashier);
     const itemName = normalizeText(row.item_name || row.name || 'Tanpa Nama');
-    const groupKey = normalizeText(row.item_group || row.group_name || row.category_name).toLowerCase();
-    const groupIdKey = normalizeText(row.group_id || row.item_group_id || row.olsera_group_id).toLowerCase();
-    const category = categoryByName.get(groupKey) || categoryByGroupId.get(groupIdKey);
+    const groupKey = normalizeText(row.__category_name || row.item_group || row.group_name || row.category_name).toLowerCase();
+    const groupIdKey = normalizeText(row.__olsera_group_id || row.group_id || row.item_group_id || row.olsera_group_id).toLowerCase();
+    const category = row.__production_area && row.__item_type
+      ? {
+        category_name: row.__category_name,
+        olsera_group_id: row.__olsera_group_id,
+        production_area: row.__production_area,
+        item_type: row.__item_type
+      }
+      : categoryByName.get(groupKey) || categoryByGroupId.get(groupIdKey);
 
     summary.grand_total += amount;
 
