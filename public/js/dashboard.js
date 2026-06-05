@@ -11,6 +11,7 @@ const elements = {
   statusText: document.querySelector('#statusText'),
   grandTotal: document.querySelector('#grandTotal'),
   porsiBilliard: document.querySelector('#porsiBilliard'),
+  billiardBreakdown: document.querySelector('#billiardBreakdown'),
   totalBar: document.querySelector('#totalBar'),
   totalDapur: document.querySelector('#totalDapur'),
   minumanRows: document.querySelector('#minumanRows'),
@@ -57,6 +58,14 @@ function renderRows(target, rows) {
 function renderReport(report) {
   elements.grandTotal.textContent = formatter.format(report.summary.grand_total);
   elements.porsiBilliard.textContent = formatter.format(report.summary.porsi_billiard);
+  elements.billiardBreakdown.innerHTML = '';
+
+  for (const item of report.summary.billiard_breakdown || []) {
+    const div = document.createElement('div');
+    div.textContent = `${item.cashier_name}: ${formatter.format(item.amount)}`;
+    elements.billiardBreakdown.appendChild(div);
+  }
+
   elements.totalBar.textContent = formatter.format(report.summary.total_bar);
   elements.totalDapur.textContent = formatter.format(report.summary.total_dapur);
   renderRows(elements.minumanRows, report.rankings.minuman);

@@ -10,6 +10,26 @@ function normalizeText(value) {
   return String(value || '').trim();
 }
 
+function normalizeCashierName(value) {
+  return normalizeText(value)
+    .replace(/\([^)]*\)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function getCashierCandidates(row) {
+  return [
+    row.sales_by_name,
+    row.serve_by_name,
+    row.sales_name,
+    row.cashier_name,
+    row.cashier
+  ]
+    .map(normalizeCashierName)
+    .filter(Boolean);
+}
+
 function getDefaultRange() {
   const now = new Date();
   const year = now.getFullYear();
@@ -59,10 +79,13 @@ function aggregateReport({ masterData, categories, billiardCashiers }) {
   const categoryByGroupId = new Map(
     categories.map(category => [normalizeText(category.olsera_group_id).toLowerCase(), category])
   );
-  const billiardCashierSet = new Set(
-    billiardCashiers.map(cashier => normalizeText(cashier.cashier_name).toLowerCase())
+  const billiardCashierMap = new Map(
+    billiardCashiers
+      .map(cashier => [normalizeCashierName(cashier.cashier_name), cashier.cashier_name])
+      .filter(([normalizedName]) => Boolean(normalizedName))
   );
   const rankMap = new Map();
+  const billiardBreakdownMap = new Map();
 
   const summary = {
     grand_total: 0,
@@ -74,7 +97,7 @@ function aggregateReport({ masterData, categories, billiardCashiers }) {
   for (const row of masterData) {
     const amount = toNumber(row.amount || row.total || row.net_sales);
     const qty = toNumber(row.qty || row.quantity);
-    const cashierName = normalizeText(row.sales_name || row.cashier_name || row.cashier);
+    const cashierCandidates = getCashierCandidates(row);
     const itemName = normalizeText(row.item_name || row.name || 'Tanpa Nama');
     const groupKey = normalizeText(row.__category_name || row.item_group || row.group_name || row.category_name).toLowerCase();
     const groupIdKey = normalizeText(row.__olsera_group_id || row.group_id || row.item_group_id || row.olsera_group_id).toLowerCase();
@@ -89,8 +112,15 @@ function aggregateReport({ masterData, categories, billiardCashiers }) {
 
     summary.grand_total += amount;
 
-    if (billiardCashierSet.has(cashierName.toLowerCase())) {
+    const matchedCashier = cashierCandidates.find(candidate => billiardCashierMap.has(candidate));
+
+    if (matchedCashier) {
+      const displayName = billiardCashierMap.get(matchedCashier);
       summary.porsi_billiard += amount;
+      billiardBreakdownMap.set(
+        displayName,
+        (billiardBreakdownMap.get(displayName) || 0) + amount
+      );
     }
 
     if (category?.production_area === 'Bar') {
@@ -114,7 +144,12 @@ function aggregateReport({ masterData, categories, billiardCashiers }) {
   }
 
   return {
-    summary,
+    summary: {
+      ...summary,
+      billiard_breakdown: Array.from(billiardBreakdownMap.entries())
+        .map(([cashier_name, amount]) => ({ cashier_name, amount }))
+        .sort((a, b) => b.amount - a.amount)
+    },
     rankings: {
       minuman: buildTopTen(rankMap, 'Minuman'),
       makanan: buildTopTen(rankMap, 'Makanan')
